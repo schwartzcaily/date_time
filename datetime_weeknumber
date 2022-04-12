@@ -1,0 +1,41 @@
+import numpy as np
+import glob, os, sys
+import rasterio
+import pandas as pd
+from datetime import date, timedelta
+from isoweek import Week
+
+#define function to create date range
+#adapted from functions on the web
+def daterange(start_date, end_date):
+     for n in range(0, int((end_date - start_date).days) + 1, 7):
+         yield start_date + timedelta(n)
+         
+#create empty list to store dates
+datelist = []
+
+#define start and end date for list of dates
+start_dt = date(2001, 1, 15)
+end_dt = date(2021, 12, 31)
+
+#append dates to list
+for dt in daterange(start_dt, end_dt):
+    #print(dt.strftime("%Y-%m-%d"))
+    dt=dt.strftime('%Y%m%d')
+    datelist.append(dt)
+    
+#create dataframe from list of dates
+df= pd.DataFrame(datelist)
+
+#rename column
+df_dates= df.rename({0: 'Date'}, axis='columns')
+
+#create datetime column
+df_dates['Date']= pd.to_datetime(df_dates['Date'])
+print(df_dates)
+
+df_dates['Week_dt.week'] = df_dates['Date'].dt.week
+df_dates['Week_strftime%U']= pd.to_numeric(df_dates['Date'].dt.strftime('%U'))
+df_dates['Week_strftime%W']= pd.to_numeric(df_dates['Date'].dt.strftime('%W'))
+df_dates['Week_weekofyear'] = df_dates.Date.apply(lambda x: x.weekofyear)
+df_dates['Week_equation']=(pd.to_datetime(df_dates['Date']).dt.dayofyear-1)//7 + 1
